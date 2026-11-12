@@ -1,0 +1,28 @@
+# 核心依赖（必需，纯 Python / 有 Windows cp39 wheel）
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+sqlalchemy>=2.0
+jieba>=0.42
+numpy>=1.24
+python-multipart>=0.0.9
+httpx>=0.27
+anthropic>=0.34
+
+# ---- 可选依赖（不安装也能跑，代码会自动降级）----
+# Redis（真实 Redis 接入；不装则用内存实现）
+ redis>=5.0
+# MySQL 驱动（真实 MySQL 接入；不装则用 SQLite）
+ pymysql>=1.1
+# 向量库（真实 Chroma；不装则用内存向量库）
+ chromadb>=0.4
+# 语义向量/重排（BGE 模型；不装则用哈希向量 + 相似度）
+ sentence-transformers>=2.6
+# sentence-transformers/transformers 需要较新 Pillow（否则 import 报 PreTrainedModel 缺失）
+ Pillow>=9.1
+# BM25（官方 bm25s；不装则用内置纯 Python BM25）
+ bm25s>=0.7
+# 文档解析（PDF/Word；不装则仅支持 Markdown）
+ pymupdf>=1.24
+ python-docx>=1.1

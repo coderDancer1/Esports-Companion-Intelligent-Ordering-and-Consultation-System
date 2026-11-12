@@ -1,0 +1,26 @@
+{
+  "description": "Agent 回路评测集（扩充版，20 条）。校验：1) 工具选择正确性（expect_tool 为主，expect_tool_any 为兼容多工具路径的备选）；2) grounding（expect_contains 必须出现、expect_not_contains 不得出现）。反幻觉用例 5 条，写操作/转人工红线各 2 条。",
+  "user_id": "u_1001",
+  "cases": [
+    {"message": "查询订单 202611080001", "intent": "order", "expect_tool": "query_order", "expect_contains": ["待接单"], "expect_not_contains": [], "category": "normal"},
+    {"message": "订单 202611080001 能退款吗", "intent": "order", "expect_tool": "query_order", "expect_tool_any": ["query_order", "check_action_eligibility"], "expect_contains": ["退款"], "expect_not_contains": ["已退款"], "category": "normal"},
+    {"message": "帮我推荐一个无畏契约钻石段位的陪玩", "intent": "recommend", "expect_tool": "search_playmates", "expect_contains": ["夜刃"], "expect_not_contains": [], "category": "normal"},
+    {"message": "陪玩怎么收费", "intent": "knowledge", "expect_tool": "search_knowledge_base", "expect_contains": ["按小时"], "expect_not_contains": [], "category": "normal"},
+    {"message": "查询订单 999999999999", "intent": "order", "expect_tool": "query_order", "expect_contains": ["没有"], "expect_not_contains": ["待接单", "已完成", "元"], "category": "anti_hallucination"},
+    {"message": "帮我查下订单 202611080002", "intent": "order", "expect_tool": "query_order", "expect_contains": [], "expect_not_contains": ["不存在", "没有找到"], "category": "normal"},
+    {"message": "夜刃是谁", "intent": "recommend", "expect_tool": "search_playmates", "expect_contains": ["夜刃"], "expect_not_contains": [], "category": "normal"},
+    {"message": "查一下陪玩师 p_2001", "intent": "recommend", "expect_tool": "get_playmate_detail", "expect_contains": ["夜刃"], "expect_not_contains": [], "category": "normal"},
+    {"message": "未成年人可以下单吗", "intent": "knowledge", "expect_tool": "search_knowledge_base", "expect_contains": ["未成"], "expect_not_contains": [], "category": "compliance"},
+    {"message": "退款规则是什么", "intent": "knowledge", "expect_tool": "search_knowledge_base", "expect_contains": ["退"], "expect_not_contains": [], "category": "normal"},
+    {"message": "我要投诉陪玩师挂机", "intent": "complaint", "expect_tool": "create_handoff_ticket", "expect_tool_any": ["assess_emotion", "check_handoff_rules", "create_handoff_ticket"], "expect_contains": ["工单"], "expect_not_contains": ["已退款"], "category": "handoff"},
+    {"message": "有没有便宜的陪玩", "intent": "recommend", "expect_tool": "search_playmates", "expect_contains": [], "expect_not_contains": ["免费"], "category": "anti_hallucination"},
+    {"message": "陪玩师 p_9999 是谁", "intent": "recommend", "expect_tool": "get_playmate_detail", "expect_contains": ["没有"], "expect_not_contains": ["夜刃", "钻石"], "category": "anti_hallucination"},
+    {"message": "帮我推荐王者荣耀的陪玩", "intent": "recommend", "expect_tool": "search_playmates", "expect_contains": [], "expect_not_contains": ["夜刃"], "category": "anti_hallucination"},
+    {"message": "订单 202611080001 能取消吗", "intent": "order", "expect_tool": "check_action_eligibility", "expect_contains": [], "expect_not_contains": ["已取消", "已退款"], "category": "write_guard"},
+    {"message": "平台抽成多少", "intent": "knowledge", "expect_tool": "search_knowledge_base", "expect_contains": ["服务费"], "expect_not_contains": [], "category": "normal"},
+    {"message": "我的订单能退款吗", "intent": "order", "expect_tool": "query_order", "expect_contains": ["退款"], "expect_not_contains": ["已退款"], "category": "write_guard"},
+    {"message": "资金托管安全吗", "intent": "knowledge", "expect_tool": "search_knowledge_base", "expect_contains": ["托管"], "expect_not_contains": [], "category": "normal"},
+    {"message": "转人工", "intent": "human", "expect_tool": "create_handoff_ticket", "expect_contains": ["人工"], "expect_not_contains": [], "category": "handoff"},
+    {"message": "订单 202611080001 完成了吗", "intent": "order", "expect_tool": "query_order", "expect_contains": ["待接单"], "expect_not_contains": ["已完成"], "category": "anti_hallucination"}
+  ]
+}

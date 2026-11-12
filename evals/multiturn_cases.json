@@ -1,0 +1,30 @@
+{
+  "note": "多轮上下文评测：按顺序跑完整 Orchestrator.handle，验证短期记忆在跨轮、跨 agent 路由后仍被注入上下文。最后一轮用「复述」类问题验证 LLM 是否真能回忆前文（expect_contains 命中早期关键词），并用 expect_not_contains 拦截「只能看到当前一轮」这类失忆话术。",
+  "scenarios": [
+    {
+      "name": "跨意图路由后的上下文记忆",
+      "session_id": "eval_mt_cross_intent",
+      "user_id": "u_1001",
+      "turns": [
+        {"message": "帮我推荐一个无畏契约钻石段位的陪玩", "expect_intent": "recommend"},
+        {"message": "帮我查一下订单 202611080001 的状态", "expect_intent": "order"},
+        {"message": "我前两轮分别让你做了什么？",
+         "expect_contains": ["推荐", "订单"],
+         "expect_not_contains": ["只能看到当前", "没保留", "没有保留"]}
+      ]
+    },
+    {
+      "name": "长对话后复述早期轮（回归：丢上下文）",
+      "session_id": "eval_mt_recall",
+      "user_id": "u_1001",
+      "turns": [
+        {"message": "你好，我是新用户"},
+        {"message": "平台抽成规则是什么"},
+        {"message": "帮我查一下我的订单"},
+        {"message": "我第二个问题问的是什么？",
+         "expect_contains": ["抽成"],
+         "expect_not_contains": ["只能看到当前", "没保留", "没有保留"]}
+      ]
+    }
+  ]
+}

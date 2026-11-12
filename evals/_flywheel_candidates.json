@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-11-11T19:56:19.372966+00:00",
+  "note": "候选清单待人工审核后再并入 evals/*_cases.json 或补录知识库，不自动重训。",
+  "sources": {
+    "feedback_negative": 0,
+    "rag_fallback": 0,
+    "tool_error": 0,
+    "handoff": 2
+  },
+  "candidates": {
+    "feedback": [],
+    "rag_gaps": [],
+    "tool_errors": [],
+    "escalations": [
+      {
+        "source": "handoff",
+        "session_id": "smoke_4",
+        "trigger_rule": "handoff_limit",
+        "ticket_id": "tk_75098b96d9"
+      },
+      {
+        "source": "handoff",
+        "session_id": "smoke_4",
+        "trigger_rule": "manual",
+        "ticket_id": "tk_62f58b08bb"
+      }
+    ]
+  }
+}
