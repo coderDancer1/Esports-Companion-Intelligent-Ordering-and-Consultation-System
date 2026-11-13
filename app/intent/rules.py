@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from typing import Optional
+
+import jieba
 
 _GAMES = "英雄联盟|无畏契约|三角洲行动|绝地求生|lol|valorant|csgo|瓦"
 _RANKS = "青铜|白银|黄金|铂金|钻石|大师|宗师|王者|神话|无畏"
@@ -19,8 +22,69 @@ _CHITCHAT_WORDS = (
 )
 
 
+# 否定词（jieba 整词命中，避免"特别/不错"里的"别/不"被误判为否定）
+_NEGATIONS = {"不", "别", "没", "没有", "不用", "不要", "不想", "不需要", "不想要",
+              "不是", "并非", "拒绝", "否认", "无需", "不必", "免", "勿", "莫"}
+
+
+@lru_cache(maxsize=128)
+def _negation_spans(text: str) -> tuple:
+    """返回 text 中所有否定词的 (start, end) 区间（同一文本只分词一次）。"""
+    spans = []
+    for word, start, end in jieba.tokenize(text):
+        if word in _NEGATIONS:
+            spans.append((start, end))
+    return tuple(spans)
+
+
+def _negated_at(spans, pos: int) -> bool:
+    """关键词起始位置 pos 之前（0~2 字内，覆盖"不是|要|投诉"这类隔一个词的情况）是否被否定。"""
+    for _start, end in spans:
+        if 0 <= pos - end <= 2:
+            return True
+    return False
+
+
 def _has(text: str, *words: str) -> bool:
-    return any(w in text for w in words)
+    spans = _negation_spans(text)
+    for w in words:
+        start = 0
+        while True:
+            pos = text.find(w, start)
+            if pos == -1:
+                break
+            if not _negated_at(spans, pos):
+                return True  # 存在一个"非否定"命中即可
+            start = pos + len(w)
+    return False
+
+
+# 意图触发词（供 negates_intent 复用，与规则层关键词一致）
+_INTENT_KEYWORDS = (
+    "推荐", "陪玩", "找个", "来个", "带飞", "上分",                      # recommend
+    "退款", "退钱", "下单", "充值", "打赏", "催单", "改单", "取消订单",   # order
+    "投诉", "举报", "差评",                                            # complaint
+    "转人工", "人工", "客服",                                          # human
+)
+
+
+def negates_intent(text: str) -> bool:
+    """是否存在被否定修饰的意图关键词（如 不投诉 / 不用推荐 / 别举报 / 不要陪玩）。
+
+    embedding 层对否定不敏感，会把「不用推荐陪玩」按词面误判成 recommend；
+    分类器据此在规则层未命中时跳过 embedding、直接交 LLM（LLM 才真正理解否定）。
+    """
+    spans = _negation_spans(text)
+    for w in _INTENT_KEYWORDS:
+        start = 0
+        while True:
+            pos = text.find(w, start)
+            if pos == -1:
+                break
+            if _negated_at(spans, pos):
+                return True
+            start = pos + len(w)
+    return False
 
 
 def match(message: str) -> Optional[str]:

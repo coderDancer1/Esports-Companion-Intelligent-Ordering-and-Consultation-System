@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 import logging
 
-from app.config import get_settings
+from app.config import apply_hf_offline, get_settings
 
 logger = logging.getLogger("app.reranker")
 
@@ -17,6 +17,7 @@ def _get_reranker():
     global _reranker, _reranker_failed
     if _reranker is None and not _reranker_failed:
         try:
+            apply_hf_offline()
             from sentence_transformers import CrossEncoder
             model_name = get_settings().RERANK_MODEL
             # 大模型（约 1GB）首次会触发下载，可能耗时数分钟——明确打日志，避免"静默卡住"。

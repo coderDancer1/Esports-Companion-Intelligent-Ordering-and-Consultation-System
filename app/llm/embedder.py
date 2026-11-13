@@ -14,7 +14,7 @@ from typing import List
 
 import numpy as np
 
-from app.config import get_settings
+from app.config import apply_hf_offline, get_settings
 
 logger = logging.getLogger("app.embedder")
 
@@ -78,6 +78,7 @@ class Embedder:
         if _st_model is None and not _st_failed:
             if self.settings.HF_ENDPOINT:
                 os.environ.setdefault("HF_ENDPOINT", self.settings.HF_ENDPOINT)
+            apply_hf_offline()
             try:
                 from sentence_transformers import SentenceTransformer
                 _st_model = SentenceTransformer(self.settings.EMB_MODEL)

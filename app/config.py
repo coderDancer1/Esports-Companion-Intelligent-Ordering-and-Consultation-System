@@ -2,6 +2,7 @@
 
 所有模块通过 `get_settings()` 访问同一份配置，避免重复解析。
 """
+import os
 from functools import lru_cache
 from typing import Optional
 
@@ -30,6 +31,8 @@ class Settings(BaseSettings):
     EMBEDDING_BACKEND: str = "hash"  # hash | sentence_transformers
     # HuggingFace 端点：默认直连 huggingface.co；国内可设 https://hf-mirror.com
     HF_ENDPOINT: str = ""
+    # 模型已缓存后强制离线：跳过 huggingface 联网校验（hf-mirror 抽风会拖慢启动甚至误降级 hash）
+    HF_HUB_OFFLINE: bool = False
 
     # --- 鉴权 ---
     JWT_SECRET: str = "dev-secret-change-me-in-prod"
@@ -72,3 +75,13 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+def apply_hf_offline() -> None:
+    """模型已缓存时强制离线，跳过 huggingface 联网校验。
+
+    必须在 `import sentence_transformers` 之前调用（env 才会被 huggingface_hub 读到）。
+    """
+    if get_settings().HF_HUB_OFFLINE:
+        os.environ["HF_HUB_OFFLINE"] = "1"
+        os.environ["TRANSFORMERS_OFFLINE"] = "1"

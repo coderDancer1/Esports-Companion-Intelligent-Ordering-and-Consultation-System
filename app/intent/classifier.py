@@ -30,6 +30,12 @@ class IntentClassifier:
         if hit:
             return RouteDecision(intent=hit, confidence=1.0, reason="rule", route_source="rule")
 
+        # 1.5 否定短路：规则层未命中但存在「被否定的意图词」时，
+        #     embedding 对否定不敏感（会把"不用推荐陪玩"按词面误判成 recommend），
+        #     跳过 embedding 直接交 LLM 理解否定语义。
+        if rules.negates_intent(message):
+            return await llm_classifier.classify(message, recent_messages, compressed_summary)
+
         # 2. 粘性（仅 recommend/order）
         sticky_hit = sticky.check(message, last_intent)
         if sticky_hit:

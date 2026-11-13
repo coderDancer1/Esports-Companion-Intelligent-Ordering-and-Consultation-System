@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 from typing import List, Optional
 
+from app.intent import rules
 from app.intent.route_decision import RouteDecision
 from app.llm.client import complete, extract_json, is_llm_available
 
@@ -59,16 +60,17 @@ async def _llm_classify(message, recent_messages, compressed_summary) -> Optiona
 
 def _mock_classify(message: str) -> RouteDecision:
     t = message.strip()
-    if re.search(r"投诉|举报|退款|太差|恶心|欺骗|态度|差评", t):
+    # 用规则层的否定感知 _has 做关键词匹配（否则"不用推荐/不投诉"会被裸 re.search 误判）
+    if rules._has(t, "投诉", "举报", "退款", "太差", "恶心", "欺骗", "态度", "差评"):
         return RouteDecision(intent="complaint", confidence=0.85, reason="mock_keyword", route_source="llm")
-    if re.search(r"人工|客服|真人", t):
+    if rules._has(t, "人工", "客服", "真人"):
         return RouteDecision(intent="human", confidence=0.85, reason="mock_keyword", route_source="llm")
     if re.fullmatch(r"\d{8,20}", t):
         return RouteDecision(intent="order", confidence=0.9, reason="mock_order_number", route_source="llm")
-    if re.search(r"订单", t) and re.search(r"查|退|取消|状态|改|催", t):
+    if rules._has(t, "订单") and rules._has(t, "查", "退", "取消", "状态", "改", "催"):
         return RouteDecision(intent="order", confidence=0.8, reason="mock_keyword", route_source="llm")
-    if re.search(r"多少钱|怎么收费|收费|规则|包含什么|能不能|可以吗|价格", t):
+    if rules._has(t, "多少钱", "怎么收费", "收费", "规则", "包含什么", "能不能", "可以吗", "价格"):
         return RouteDecision(intent="knowledge", confidence=0.7, reason="mock_keyword", route_source="llm")
-    if re.search(r"推荐|找个|有没有|陪玩|带飞|段位|价位|性格|温柔|技术", t):
+    if rules._has(t, "推荐", "找个", "有没有", "陪玩", "带飞", "段位", "价位", "性格", "温柔", "技术"):
         return RouteDecision(intent="recommend", confidence=0.7, reason="mock_keyword", route_source="llm")
     return RouteDecision(intent="chitchat", confidence=0.6, reason="mock_default", route_source="llm")
